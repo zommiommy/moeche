@@ -1,0 +1,13 @@
+include: "./shared.yml"
+container_name: "manylinux2010"
+platform_tag: "manylinux2010"
+target_triple: "x86_64-unknown-linux-gnu"
+
+build_recipes:
+  publish:
+    publish: true
+    targets:
+      balanced:
+        target_cpu: "haswell"
+      compatibility:
+        target_cpu: "core2"

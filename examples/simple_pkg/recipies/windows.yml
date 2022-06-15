@@ -1,0 +1,11 @@
+include: "./shared.yml"
+target_triple: "x86_64-pc-windows-gnu"
+
+build_recipes:
+  publish:
+    publish: true
+    targets:
+      balanced:
+        target_cpu: "haswell"
+      compatibility:
+        target_cpu: "core2"

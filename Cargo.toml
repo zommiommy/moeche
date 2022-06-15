@@ -1,0 +1,13 @@
+[workspace]
+
+members = [
+    "shared",
+    "moeche",
+    "rust_lexer",
+    "rust_parser",
+    "pyo3_bindgen",
+    "wheel_builder",
+    "wheel_compiler",
+    "harness_gen",
+    "examples/simple_pkg",
+]

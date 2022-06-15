@@ -1,0 +1,59 @@
+include: "./shared.yml"
+container_name: "cross_compile_moeche"
+build_recipes:
+  publish:
+    publish: true
+    targets:
+      #balanced_cuda:
+      #  target_cpu: "haswell"
+      #  platform_tag: "manylinux2010"
+      #  features: ["cuda"]
+      #  target_triple: "x86_64-unknown-linux-gnu"
+      #  python_path: "/build/x86_64-unknown-linux-gnu"
+
+      balanced_linux:
+        target_cpu: "haswell"
+        platform_tag: "manylinux2010"
+        target_triple: "x86_64-unknown-linux-gnu"
+        python_path: "/build/x86_64-unknown-linux-gnu/lib"
+        python_headers: "/build/x86_64-unknown-linux-gnu/include"
+
+      compatibility_linux:
+        target_cpu: "core2"
+        platform_tag: "manylinux2010"
+        python_path: "/build/x86_64-unknown-linux-gnu/lib"
+        python_headers: "/build/x86_64-unknown-linux-gnu/include"
+
+      balanced_windows:
+        target_cpu: "haswell"
+        target_triple: "x86_64-pc-windows-msvc"
+        python_path: "/build/x86_64-pc-windows-msvc/lib"
+        python_headers: "/build/x86_64-pc-windows-msvc/include"
+
+      compatibility_windows:
+        target_cpu: "core2"
+        target_triple: "x86_64-pc-windows-msvc"
+        python_path: "/build/x86_64-pc-windows-msvc/lib"
+        python_headers: "/build/x86_64-pc-windows-msvc/include"
+      
+      balanced_darwin:
+        target_cpu: "haswell"
+        target_triple: "x86_64-apple-darwin"
+        python_path: "/build/x86_64-apple-darwin/lib"
+        python_headers: "/build/x86_64-apple-darwin/include"
+      
+      compatibility_darwin:
+        target_cpu: "core2"
+        target_triple: "x86_64-apple-darwin"
+        python_path: "/build/x86_64-apple-darwin/lib"
+        python_headers: "/build/x86_64-apple-darwin/include"
+      
+      m1:
+        target_cpu: "apple-m1"
+        platform_tag: "manylinux2010"
+        target_triple: "aarch64-apple-darwin"
+        python_path: "/build/aarch64-apple-darwin/lib"
+        python_headers: "/build/aarch64-apple-darwin/include"
+        
+      
+    
