@@ -1,202 +1,115 @@
+#![no_std]
+
+use core::convert::TryFrom;
+
+extern crate alloc;
+
 mod chars_constants;
-pub use chars_constants::*;
 
-pub trait Parse<T> {
-    fn inner_parse(&mut self) -> Option<T>;
+mod keyword;
+pub use keyword::*;
+mod symbol;
+pub use symbol::*;
+mod literal;
+pub use literal::*;
+mod identifier;
+pub use identifier::*;
+mod comment;
+pub use comment::*;
+
+#[derive(Debug)]
+pub enum LexerError<'a> {
+    UnexpectedEndOfFile(Span),
+    CannotTokenize{
+        hint: &'a str,
+        span:Span
+    },
 }
 
-pub struct Data<'a> {
-    data: &'a str,
-    line_number: usize,
+type Result<'a, T> = core::result::Result<T, LexerError<'a>>;
+
+#[derive(Debug, Clone, Default)]
+pub struct Span {
+    line: usize,
+    byte_offset: usize,
 }
 
-impl<'a> Data<'a> {
-    #[inline]
-    pub fn parse<T>(&mut self) -> Option<T> 
-    where
-        Data<'a>: Parse<T> 
-    {
-        self.skip_white_space();
-        Parse::<T>::inner_parse(self)
-    }
+pub struct Lexer<'a> {
+    original_data: &'a str,
+    remaining_text: &'a str,
+    span: Span,
+}
 
-    #[inline]
-    pub fn get_current_line_number(&self) -> usize {
-        self.line_number
-    }
-
-    #[inline]
-    pub fn split_at_white_space(&mut self) -> &str {
-        let (skipped, ptr) = self.data.split_once(WHITE_SPACE)
-            .unwrap_or(("", self.data));
-
-        self.data = ptr;
-        skipped
+impl<'a> Lexer<'a> {
+    pub fn new(data: &'a str) -> Self {
+        Self {
+            original_data: data,
+            remaining_text: data,
+            span: Span::default(),
+        }
     }
 
     #[inline]
     pub fn skip_white_space(&mut self) {
-        let skipped = self.split_at_white_space();
-        self.line_number += skipped.chars().filter(|x| *x == '\n').count();
-
-    }
-}
-
-pub struct Identifier<'a>(&'a str);
-
-impl <'a> Parse<Identifier> for Data<'a> {  
-    #[inline]
-    fn inner_parse(&mut self) -> Option<Identifier> {
-        let mut result = String::new();
-
-        let mut ptr = self.data;
-        while let Some(c) = ptr.chars().nth(0) {
-            if !IDENTIFIER_ALPHABET.contains(c) {
+        while let Some(current_char) = self.remaining_text.chars().next() {
+            if !chars_constants::is_whitespace(current_char) {
                 break
             }
-            result.push(c);
-            ptr = &ptr[1..];
+            if current_char == '\n' {
+                self.span.line += 1;
+            }
+            self.remaining_text = &self.remaining_text[1..];
+            self.span.byte_offset += current_char.len_utf8();
+            
+        }
+    }
+
+    pub fn get_next_token(&mut self) -> Result<Token<'a>> {
+        self.skip_white_space();
+
+        macro_rules! try_parse {
+            ($type:ident) => {
+                if let Ok(value) = $type::try_from(self.remaining_text) {
+                    self.span.byte_offset += value.len();
+                    let (_extra, rem) = self.remaining_text.split_at(value.len());
+                    self.remaining_text = rem;
+                    return Ok(Token::$type(value)) 
+                }
+            };
         }
 
-        if result.is_empty() {
-            None
-        } else {
-            self.data = ptr;
-            Some(Identifier(result))
+        try_parse!(Comment);
+        try_parse!(Literal);
+        try_parse!(Symbol);
+
+        if let Ok(identifier) = Identifier::try_from(self.remaining_text) {
+            self.span.byte_offset += identifier.len();
+            let (_extra, rem) = self.remaining_text.split_at(identifier.len());
+            self.remaining_text = rem;
+
+            return Ok(if let Ok(keyword) = Keyword::try_from(identifier) {
+                Token::Keyword(keyword)
+            } else {
+                Token::Identifier(identifier)
+            });
         }
+
+        Err(LexerError::CannotTokenize{
+            hint: &self.original_data[
+                self.span.byte_offset.saturating_sub(10)
+                ..
+                self.original_data.len().min(self.span.byte_offset + 10)
+            ],
+            span:self.span.clone(),
+        })
     }
 }
 
-pub enum Literal<'a> {
-    Integer(&'a str),
-    Float(f64),
-    String(String),
-    RawString(String),
-    Bytes(Vec<u8>),
-    RawBytes(Vec<u8>),
-}
-
+#[derive(Debug)]
 pub enum Token<'a> {
-    // structured tokens
-    Identifier(Identifier<'a>),
-    Lifetime(&'a str),
-    Comment(&'a str),
+    Comment(Comment<'a>),
     Literal(Literal<'a>),
-
-    // Symbols
-    OpenBraces,        // {
-    CloseBraces,       // }
-    OpenBraket,        // [
-    CloseBraket,       // ]
-    OpenParenthesis,   // (
-    CloseParenthesis,  // )
-    Plus,       // +
-    Minus,      // -
-    Star,       // *
-    Slash,      // /
-    Percent,    // %
-    Caret,      // ^
-    Not,        // !
-    And,        // &
-    Or,         // |
-    AndAnd,     // &&
-    OrOr,       // ||
-    Shl,        // <<
-    Shr,        // >>
-    PlusEq,     // +=
-    MinusEq,    // -=
-    StarEq,     // *=
-    SlashEq,    // /=
-    PercentEq,  // %=
-    CaretEq,    // ^=
-    AndEq,      // &=
-    OrEq,       // |=
-    ShlEq,      // <<=
-    ShrEq,      // >>=
-    Eq,         // =
-    EqEq,       // ==
-    Ne,         // !=
-    GtOrOpenAngular,   // >
-    LtOrClosedAngular, // <
-    Ge,         // >=
-    Le,         // <=
-    At,         // @
-    Underscore, // _
-    Dot,        // .
-    DotDot,     // ..
-    DotDotDot,  // ...
-    DotDotEq,   // ..=
-    Comma,      // ,
-    Semi,       // ;
-    Colon,      // :
-    PathSep,    // ::
-    RArrow,     // ->
-    FatArrow,   // =>
-    Pound,      // #
-    Dollar,     // $
-    Question,   // ?
-    Shebang,    // #!
-    Utf8Bom,    // \uFEFF
-    EmptyTuple, // ()
-
-    // strict keywords
-    As,         // as
-    Break,      // break
-    Const,      // const
-    Continue,   // continue
-    Crate,      // crate
-    Else,       // else
-    Enum,       // enum
-    Extern,     // extern
-    False,      // false
-    Fn,         // fn
-    For,        // for
-    If,         // if
-    Impl,       // impl
-    In,         // in
-    Let,        // let
-    Loop,       // loop
-    Match,      // match
-    Mod,        // mod
-    Move,       // move
-    Mut,        // mut
-    Pub,        // pub
-    Ref,        // ref
-    Return,     // return
-    SelfLowercase,   // self
-    SelfCapitalized, // Self
-    Static,     // static
-    Struct,     // struct
-    Trait,      // trait
-    True,       // true
-    Type,       // type
-    Unsafe,     // unsafe
-    Use,        // use
-    Where,      // where
-    While,      // while
-
-    // strict keywords (2018 edition)
-    Async,      // async
-    Await,      // await
-    Dyn,        // dyn
-
-    // reserved keywords
-    Abstract,   // abstract
-    Become,     // become
-    Box,        // box
-    Do,         // do
-    Final,      // final
-    Macro,      // macro
-    Override,   // override
-    Priv,       // priv
-    Typeof,     // typeof
-    Unsized,    // unsized
-    Virtual,    // virtual
-    Yield,      // yield
-
-    // reserved keywords (2018 edition)
-    Try,        // try
-
-    // weak keywords
-    Union,      // union
+    Symbol(Symbol),
+    Keyword(Keyword),
+    Identifier(Identifier<'a>),
 }

@@ -4,7 +4,7 @@ Rust Parser for static analysis + Pyo3 Bindgen + Fuzzing harnesses gen + Wheel B
 # Status
 [~] Wheels Builder
 [~] Wheels Compiler  
-[ ] Rust Lexer
+[~] Rust Lexer (Missing parsing of numeric literals)
 [ ] Rust Parser
 [ ] Fuzzing harness Gen
 

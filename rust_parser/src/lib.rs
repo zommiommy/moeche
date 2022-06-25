@@ -1,80 +1,35 @@
-#[allow(unused_imports)]
+#![no_std]
 
-mod arg;
-pub use arg::*;
-
-mod doc;
-pub use doc::*;
-
-mod enums;
-pub use enums::*;
-
-mod doc_section;
-pub use doc_section::*;
-
-mod args;
-pub use args::*;
-
-mod attribute;
-pub use attribute::*;
-
-mod consts;
-pub use consts::*;
-
-mod function;
-pub use function::*;
-
-mod lifetime;
-pub use lifetime::*;
-
-mod module;
-pub use module::*;
-
-mod statics;
-pub use statics::*;
-
-mod impls;
-pub use impls::*;
-
-mod uses;
-pub use uses::*;
-
-mod externs;
-pub use externs::*;
-
-mod macros;
-pub use macros::*;
-
-mod macro_call;
-pub use macro_call::*;
-
-mod structs;
-pub use structs::*;
-
-mod types;
-pub use types::*;
-
-mod doc_line;
-pub use doc_line::*;
-
-mod type_modifiers;
-pub use type_modifiers::*;
-
-mod identifier;
-pub use identifier::*;
-
-mod generics;
-pub use generics::*;
-
-mod trait_definition;
-pub use trait_definition::*;
-
-mod type_definition;
-pub use type_definition::*;
-
-#[macro_use]
-mod utils;
-pub use utils::*;
+extern crate alloc;
+use alloc::vec::Vec;
+use alloc::string::String;
+use alloc::collections::BTreeMap;
+use rust_lexer::Identifier;
 
 mod visibility;
-pub use visibility::*;
+
+pub struct Module {
+    pub file_path: String,
+    pub module_doc: String,
+    pub name: String,
+    //pub uses: Vec<Use>,
+    //pub enums: Vec<Enum>,
+    //pub structs: Vec<Struct>,
+    //pub types: Vec<TypeDefinition>,
+    //pub traits: Vec<TraitDefinition>,
+    //pub consts: Vec<Const>,
+    //pub statics: Vec<Static>,
+    //pub impls: Vec<Impl>,
+    //pub macros: Vec<Macro>,
+    //pub macro_calls: Vec<MacroCall>,
+    //pub functions: Vec<Function>,
+    //pub externs: Vec<Extern>,
+    pub mods: BTreeMap<String, Module>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Use {
+    pub visibility: Visibility,
+    pub attributes: Vec<Attribute>,
+    pub content: Vec<Identifier<'a>>,
+}
