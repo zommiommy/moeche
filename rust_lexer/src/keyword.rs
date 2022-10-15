@@ -80,6 +80,7 @@ impl_keyword!(
     Return => "return",
     Static => "static",
     Struct => "struct",
+    Super => "super",
     Typeof => "typeof",
     Unsafe => "unsafe",
     Async => "async",

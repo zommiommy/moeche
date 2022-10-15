@@ -5,7 +5,8 @@ use core::convert::TryFrom;
 extern crate alloc;
 
 mod chars_constants;
-
+mod peekable;
+pub use peekable::*;
 mod keyword;
 pub use keyword::*;
 mod symbol;
@@ -21,7 +22,7 @@ pub use comment::*;
 pub enum LexerError<'a> {
     UnexpectedEndOfFile(Span),
     CannotTokenize{
-        hint: &'a str,
+        source: &'a str,
         span:Span
     },
 }
@@ -95,21 +96,41 @@ impl<'a> Lexer<'a> {
         }
 
         Err(LexerError::CannotTokenize{
-            hint: &self.original_data[
-                self.span.byte_offset.saturating_sub(10)
-                ..
-                self.original_data.len().min(self.span.byte_offset + 10)
-            ],
+            source: self.original_data,
             span:self.span.clone(),
         })
     }
+
+    pub fn get_token_stream(self) 
+        -> Peekable<Token<'a>, Self, 4096> {
+        Peekable::new(self)
+    }
 }
 
-#[derive(Debug)]
+impl<'a> Iterator for Lexer<'a> {
+    type Item = Token<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.remaining_text.is_empty() {
+            return None;
+        }
+
+        Some(self.get_next_token().unwrap())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Token<'a> {
     Comment(Comment<'a>),
     Literal(Literal<'a>),
     Symbol(Symbol),
     Keyword(Keyword),
     Identifier(Identifier<'a>),
+    Empty,
+}
+
+impl<'a> Default for Token<'a> {
+    fn default() -> Self {
+        Token::Empty
+    }
 }

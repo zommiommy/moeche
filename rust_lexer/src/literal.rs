@@ -1,5 +1,8 @@
-#[derive(Debug, PartialEq, Eq)]
+use crate::Identifier;
+
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Literal<'a> {
+    Bool(&'a str),
     Integer(&'a str),
     Float(&'a str),
     Char(&'a str),
@@ -14,14 +17,15 @@ impl<'a> Literal<'a> {
     pub fn len(&self) -> usize {
         use Literal::*;
         match self {
-            Integer(raw) => raw.len(),
-            Float(raw) => raw.len(),
-            Char(raw) => raw.len() + 1 + 1,
-            String(raw) => raw.len() + 1 + 1,
+            Bool(raw)      => raw.len(),
+            Integer(raw)   => raw.len(),
+            Float(raw)     => raw.len(),
+            Char(raw)      => raw.len() + 1 + 1,
+            String(raw)    => raw.len() + 1 + 1,
             RawString(raw) => raw.len() + 3 + 2,
-            Bytes(raw) => raw.len() + 2 + 1,
-            Byte(raw) => raw.len() + 2 + 1,
-            RawBytes(raw) => raw.len() + 4 + 2,
+            Bytes(raw)     => raw.len() + 2 + 1,
+            Byte(raw)      => raw.len() + 2 + 1,
+            RawBytes(raw)  => raw.len() + 4 + 2,
         }
     }
 }
@@ -75,6 +79,8 @@ impl<'a> TryFrom<&'a str> for Literal<'a> {
         if let Some(literal) = get_literal_end(value, "'", "'") {
             return Ok(Literal::Char(literal));
         }   
+
+
 
         // TODO!: integers
 

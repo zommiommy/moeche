@@ -1,3 +1,4 @@
+use alloc::string::{String, ToString};
 use crate::chars_constants::*;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -12,6 +13,12 @@ impl<'a> AsRef<str> for Identifier<'a> {
 impl<'a> Identifier<'a> {
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+}
+
+impl<'a> From<Identifier<'a>> for String {
+    fn from(value: Identifier<'a>) -> Self {
+        value.0.to_string()
     }
 }
 
