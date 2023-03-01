@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 
 #[pyfunction()]
-#[text_signature = "(a, b)"]
+#[pyo3(text_signature = "(a, b)")]
 /// Return the sum of the two input integers
 ///
 /// Arguments

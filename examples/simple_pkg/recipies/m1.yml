@@ -1,8 +1,7 @@
 include: "./shared.yml"
 target_triple: "aarch64-apple-darwin"
 build_recipes:
-  publish:
-    publish: true
+  release:
     targets:
       m1:
         target_cpu: "apple-m1"

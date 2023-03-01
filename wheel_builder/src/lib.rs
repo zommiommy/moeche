@@ -107,35 +107,35 @@ pub struct WheelSettings {
     // data from https://peps.python.org/pep-0425/
 
     /// The name of the packager
-    lib_name: String,
+    pub lib_name: String,
     /// The version of the package
-    version: String,
+    pub version: String,
     /// Which interpreter the wheel is for
-    python_tag: PythonTag,
+    pub python_tag: PythonTag,
     /// The abi compatability tag
-    abi_tag: String,
+    pub abi_tag: String,
     /// The platform compatability tag
-    platform_tag: String,
+    pub platform_tag: String,
     /// python 3.x
-    python_minor_version: usize,
+    pub python_minor_version: usize,
 
     /// Where to write the wheel
-    dst_wheel_folder_path: String, 
+    pub dst_wheel_folder_path: String, 
     /// Where is the readme of the package
-    readme_path: String,
+    pub readme_path: String,
     
     /// Dependancies on other python packages
-    requires_dist: Vec<String>, 
+    pub requires_dist: Vec<String>, 
     /// Keywords
-    keywords: Vec<String>,
+    pub keywords: Vec<String>,
     /// Authors
-    authors: Vec<String>,
+    pub authors: Vec<String>,
     /// Authors emails
-    author_emails: Vec<String>,
+    pub author_emails: Vec<String>,
     /// License
-    license: String,
+    pub license: String,
     /// Project url
-    project_url: Option<String>,
+    pub project_url: Option<String>,
 }
 
 impl WheelSettings {
@@ -159,12 +159,12 @@ impl WheelSettings {
         // validate the version
         // PEP 440 396 345
         // TODO!: this doesn't currently support the local version segment
-        let version_regex = Regex::new(r"[\d+\!]\d+(.\d+)*[{a|b|rc}\d+][.post\d|_+][.dev\d+]").unwrap();
+        let version_regex = Regex::new(r"\d+(.\d+)*[{a|b|rc}\d+]?[.post\d|_+]?[.dev\d+]?").unwrap();
         self.version = self.version.trim().to_ascii_lowercase();
         if !version_regex.is_match(&self.version) {
             return Err(format!(
                 "The normalized version '{}' does not respet PEP 440 496 345 format.",
-                self.lib_name,
+                self.version,
             ));
         }
 

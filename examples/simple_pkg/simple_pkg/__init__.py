@@ -15,7 +15,6 @@ cpu_infos = cpuinfo.get_cpu_info()
 cpu_features = set(cpu_infos["flags"])
 
 crate_features = set()
-targets =
 with open(os.path.join(), "r") as f:
     targets = json.read(f)
 

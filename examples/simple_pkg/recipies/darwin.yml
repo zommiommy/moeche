@@ -2,8 +2,7 @@ include: "./shared.yml"
 target_triple: "x86_64-apple-darwin"
 
 build_recipes:
-  publish:
-    publish: true
+  release:
     targets:
       balanced:
         target_cpu: "haswell"

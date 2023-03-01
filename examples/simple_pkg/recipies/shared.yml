@@ -1,18 +1,8 @@
-python_minor_version: 6
+python_minor_version: 7
 dst_wheel_folder_path: "/tmp/wheels/"
 build_folder: "/tmp/moeche/build"
-readme_path: "README.md"
 requires_dist:
   - "numpy"
-license: "MIT"
-project_url: "https://github.com/zommiommy/moeche/examples/simple_pkg"
-keywords:
-  - "python" 
-  - "rust" 
-authors: 
-  - "Fontana Tommaso"
-author_emails: 
-  - "tommaso.fontana.96 (at) gmail.com"
 shared_rustflags: "-C inline-threshold=1000"
 
 build_recipes:
@@ -20,5 +10,12 @@ build_recipes:
     install: true
     targets:
       native:
+        target_cpu: "generic"
+        features: ["all"]
+
+  develop_native:
+    install: true
+    targets:
+      develop:
         target_cpu: "native"
         features: ["all"]

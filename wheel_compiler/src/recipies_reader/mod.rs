@@ -1,6 +1,6 @@
 use std::{fs, hash::Hash};
 use std::path::Path;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use serde::{Serialize, Deserialize};
 
 mod build_recipe;
@@ -18,15 +18,9 @@ pub(crate) struct ValidatedRecipe {
     pub(crate) python_minor_version: usize,
     pub(crate) dst_wheel_folder_path: String,
     pub(crate) build_folder: String,
-    pub(crate) readme_path: String,
-    pub(crate) license: String,
-    pub(crate) project_url: Option<String>,
     pub(crate) shared_rustflags: String,
     pub(crate) requires_dist: Vec<String>,
-    pub(crate) keywords: Vec<String>,
-    pub(crate) authors: Vec<String>,
-    pub(crate) author_emails: Vec<String>,
-    pub(crate) build_recipes: HashMap<String, ValidatedBuildRecipe>,
+    pub(crate) build_recipes: BTreeMap<String, ValidatedBuildRecipe>,
 }
 
 
@@ -36,18 +30,12 @@ pub(crate) struct Recipe {
     pub(crate) python_minor_version: Option<usize>,
     pub(crate) dst_wheel_folder_path: Option<String>,
     pub(crate) build_folder: Option<String>,
-    pub(crate) readme_path: Option<String>,
-    pub(crate) license: Option<String>,
-    pub(crate) project_url: Option<String>,
     pub(crate) shared_rustflags: Option<String>,
     pub(crate) requires_dist: Option<Vec<String>>,
-    pub(crate) keywords: Option<Vec<String>>,
-    pub(crate) authors: Option<Vec<String>>,
-    pub(crate) author_emails: Option<Vec<String>>,
     pub(crate) target_triple: Option<String>,
     pub(crate) python_path: Option<String>,
     pub(crate) python_headers: Option<String>,
-    pub(crate) build_recipes: Option<HashMap<String, BuildRecipe>>,
+    pub(crate) build_recipes: Option<BTreeMap<String, BuildRecipe>>,
 }
 
 
@@ -57,20 +45,14 @@ impl Validate for Recipe {
     fn validate(self) -> Result<Self::ValidatedType, String> {
         Ok(ValidatedRecipe{
             python_minor_version: self.python_minor_version.ok_or_else(|| "Missing python_minor_version in recipe".to_string())?,
-            readme_path: self.readme_path.ok_or_else(|| "Missing readme_path in recipe".to_string())?,
             dst_wheel_folder_path: self.dst_wheel_folder_path.unwrap_or("/tmp/moeche/wheels".into()),
             build_folder: self.build_folder.unwrap_or("/tmp/moeche/build".into()),
-            license: self.license.ok_or_else(|| "Missing license in recipe".to_string())?,
-            project_url: self.project_url,
             shared_rustflags: self.shared_rustflags.unwrap_or("".into()),
             requires_dist: self.requires_dist.unwrap_or_else(Vec::new),
-            keywords: self.keywords.unwrap_or_else(Vec::new),
-            authors: self.authors.unwrap_or_else(Vec::new),
-            author_emails: self.author_emails.unwrap_or_else(Vec::new),
             build_recipes: self.build_recipes.ok_or_else(|| "Missing build_recipes in recipe".to_string())?
                 .into_iter()
                 .map(|(key, value)| Ok((key, value.validate()?)))
-                .collect::<Result<HashMap<String, ValidatedBuildRecipe>, String>>()?,
+                .collect::<Result<BTreeMap<String, ValidatedBuildRecipe>, String>>()?,
         })
     }
 }
@@ -110,14 +92,14 @@ impl Recipe {
                         v.python_headers = v.python_headers.or(recipie.python_headers.clone());
                         (k, v)
                     })
-                    .collect::<HashMap<String, BuildTarget>>()
+                    .collect::<BTreeMap<String, BuildTarget>>()
                 });
                 (
                     key, 
                     value
                 )
             })
-            .collect::<HashMap<String, BuildRecipe>>()
+            .collect::<BTreeMap<String, BuildRecipe>>()
         );
 
         Ok(recipie)
@@ -129,41 +111,9 @@ impl Recipe {
         self.python_minor_version = self.python_minor_version.or(defaults.python_minor_version);
         self.dst_wheel_folder_path = self.dst_wheel_folder_path.or(defaults.dst_wheel_folder_path);
         self.build_folder = self.build_folder.or(defaults.build_folder);
-        self.readme_path = self.readme_path.or(defaults.readme_path);
-        self.license = self.license.or(defaults.license);
-        self.project_url = self.project_url.or(defaults.project_url);
         self.requires_dist = self.requires_dist.or(defaults.requires_dist);
         self.python_path = self.python_path.or(defaults.python_path);
         self.python_headers = self.python_headers.or(defaults.python_headers);
-
-        self.keywords = match (self.keywords, defaults.keywords) {
-            (Some(orig), Some(mut defaults)) => {
-                defaults.extend(orig.into_iter());
-                Some(defaults)
-            },
-            (Some(orig), None) => Some(orig),
-            (None, Some(defaults)) => Some(defaults),
-            (None, None) => None,
-        };
-        self.authors =  match (self.authors, defaults.authors) {
-            (Some(orig), Some(mut defaults)) => {
-                defaults.extend(orig.into_iter());
-                Some(defaults)
-            },
-            (Some(orig), None) => Some(orig),
-            (None, Some(defaults)) => Some(defaults),
-            (None, None) => None,
-        };
-        self.author_emails =  match (self.author_emails, defaults.author_emails) {
-            (Some(orig), Some(mut defaults)) => {
-                defaults.extend(orig.into_iter());
-                Some(defaults)
-            },
-            (Some(orig), None) => Some(orig),
-            (None, Some(defaults)) => Some(defaults),
-            (None, None) => None,
-        };
-
         self.build_recipes =  match (self.build_recipes, defaults.build_recipes) {
             (Some(orig), Some(mut defaults)) => {
                 

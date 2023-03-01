@@ -43,6 +43,7 @@ fn main() {
     let args = Cli::parse();
     match args.command {
         Commands::Wheel { recipe_path, target, crate_path } => {
+            dbg!(&recipe_path, &target, &crate_path);
             wheel_compiler::compile_wheel(
                 recipe_path, 
                 target, 
